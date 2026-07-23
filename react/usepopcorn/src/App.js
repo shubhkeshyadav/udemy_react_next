@@ -9,6 +9,7 @@ import ListBox from "./components/ListBox";
 import WatchedSummary from "./components/WatchedSummary";
 import WatchedMovieList from "./components/WatchedMovieList";
 import StarRating from "./components/StarRating";
+import TextExpand from "./components/TextExpand";
 
 const tempMovieData = [
   {
@@ -79,12 +80,9 @@ export default function App() {
 
   return (
     <>
-    <StarRating size={48} maxRating={5} messages={['Terrible',"Bad","Okay","Good","Amazing"]} className={'testClassName'}/>
-    <StarRating size={40} maxRating={5} color={"blue"}/>
-    <StarRating maxRating={5} color={"green"}/>
-    <StarRating maxRating={5} color={"red"}/>
-    <StarRating maxRating={5} color={"purple"}/>
-    <TempComp/>
+    {/* <StarRating maxRating={"5"} messages={['Terrible',"Bad","Okay","Good","Amazing"]} className={'testClassName'}/>
+    <TempComp /> */}
+    <TextExpand/>
       {/* <NavBar>
         <Search/>
         <NumResults movies={movies}/>
