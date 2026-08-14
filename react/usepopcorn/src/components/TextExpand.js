@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-
-
-
 const arr = [
     {
         id:1,

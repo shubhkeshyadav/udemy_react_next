@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import NavBar from "./components/NavBar";
 import MovieListBox from "./components/MovieListBox";
 // import MovieWatchedListBox from "./components/MovieWatchedListBox";
@@ -10,9 +10,8 @@ import WatchedSummary from "./components/WatchedSummary";
 import WatchedMovieList from "./components/WatchedMovieList";
 import StarRating from "./components/StarRating";
 import TextExpand from "./components/TextExpand";
-import MovieDetail from "./components/MovieDetail";
 
-/* const tempMovieData = [
+const tempMovieData = [
   {
     imdbID: "tt1375666",
     Title: "Inception",
@@ -34,9 +33,7 @@ import MovieDetail from "./components/MovieDetail";
     Poster:
       "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
   },
-]; */
-
-const tempMovieData = [];
+];
 
 const tempWatchedData = [
   {
@@ -61,7 +58,6 @@ const tempWatchedData = [
   },
 ];
 
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
@@ -73,23 +69,8 @@ const TempComp = () => {
   </div>
 }
 
-const apiKey = "8169c304";
-async function getMovies(url){
-  const apiObj  = await fetch(url);
-  if(!apiObj.ok){
-    throw new Error("Error Somethingwent wrong");
-  } 
-    
-  const fData =  await apiObj.json();
-  return fData;
-}
-
 export default function App() {
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  //const [selectedMovie, setSelectedMovie] = useState(null);
-  const [query, setQuery] = useState("attack");
-  const [showLoader, setShowLoader] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
 
@@ -97,79 +78,27 @@ export default function App() {
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
-  const url = `http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`;
-
-  useEffect(()=>{
-    setIsError("");
-    setShowLoader(false);
-    const loadData = async () => {
-      try{
-        
-        setShowLoader(true);
-        if(query.length < 3){
-          throw new Error("Movie not found!!");
-        }
-        const moviesDt = await getMovies(url);
- 
-        if(moviesDt.Response === 'False'){
-          throw new Error("Movie not found!!");
-        }   
-            
-        setMovies(()=>moviesDt.Search);
-        setShowLoader(()=>false);
-      }
-      catch(err){
-        setIsError(err.message);
-        setShowLoader(false);
-      }
-    }
-    loadData();
-  },[query]);
-
-  const handeMovieSelect = (movieId) => {
-    setSelectedMovie(()=>movieId);
-  }
-
-  const handeMovieClose = (movieId) => {
-    setSelectedMovie(false);
-  }
-
   return (
     <>
     {/* <StarRating maxRating={"5"} messages={['Terrible',"Bad","Okay","Good","Amazing"]} className={'testClassName'}/>
     <TempComp /> */}
     {/* <TextExpand/> */}
       <NavBar>
-        <Search query={query} setQuery={setQuery}/>
+        <Search/>
         <NumResults movies={movies}/>
       </NavBar>
       <MainComp>
             <ListBox>
-                {showLoader && <Loader/>}
-                 {!showLoader && !isError && <MovieListBox handeMovieSelect={handeMovieSelect} movies={movies}/>}
-                 {isError && <ErrorMsg msg={isError}/>}
+                <MovieListBox movies={movies}/>
             </ListBox>
             <ListBox>
-              {selectedMovie ? 
-                  <MovieDetail selectedMovie={selectedMovie} onMovieClose={handeMovieClose}/>:
-                <>
-                  <WatchedSummary/>        
-                  <WatchedMovieList watched={watched}/>
-                </>
-              }
+              <WatchedSummary/>        
+              <WatchedMovieList watched={watched}/> 
             </ListBox>
       </MainComp>
     </>
   );
 }
-
-const Loader = () => {
-  return <p className="loader">Loading..</p>;
-}
-const ErrorMsg = ({msg}) => {
-  return <p className="error">⛔️{msg}</p>;
-}
-
 export const MainComp = ({children}) => {
   return (
           <main className="main">

@@ -1,10 +1,10 @@
 import React from 'react'
 
-const MovieListBox = ({movies}) => {
+const MovieListBox = ({movies,handeMovieSelect}) => {
   return (
-        <ul className="list">
+        <ul className="list list-movies">
             {movies?.map((movie) => (
-            <li key={movie.imdbID}>
+            <li style={{cursor:'pointer'}} onClick={()=>handeMovieSelect(movie.imdbID)} key={movie.imdbID}>
                 <img src={movie.Poster} alt={`${movie.Title} poster`} />
                 <h3>{movie.Title}</h3>
                 <div>
