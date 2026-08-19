@@ -1,6 +1,6 @@
 import React from 'react'
 
-const WatchedMovieList = ({watched}) => {
+const WatchedMovieList = ({watched,onDeleteWatch}) => {
   return (
     <ul className="list">
     {watched.map((movie) => (
@@ -20,6 +20,7 @@ const WatchedMovieList = ({watched}) => {
             <span>⏳</span>
             <span>{movie.runtime} min</span>
             </p>
+            <p><button className='btn-delete' onClick={()=>onDeleteWatch(movie.imdbID)}>X</button></p>
         </div>
         </li>
     ))}

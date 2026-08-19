@@ -1,25 +1,31 @@
 import React from 'react'
 
-const WatchedSummary = () => {
+const average = (arr) =>
+  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+
+const WatchedSummary = ({watched}) => {
+  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
+  const avgUserRating = average(watched.map((movie) => movie.userRating));
+  const avgRuntime = average(watched.map((movie) => movie.runtime));
   return (
     <div className="summary">
         <h2>Movies you watched</h2>
         <div>
             <p>
             <span>#️⃣</span>
-            <span>2 movies</span>
+            <span>{watched.length} movies</span>
             </p>
             <p>
             <span>⭐️</span>
-            <span>5</span>
+            <span>{avgImdbRating.toFixed(2)}</span>
             </p>
             <p>
             <span>🌟</span>
-            <span>2</span>
+            <span>{avgUserRating.toFixed(2)}</span>
             </p>
             <p>
             <span>⏳</span>
-            <span>7 min</span>
+            <span>{avgRuntime.toFixed(2)}</span>
             </p>
         </div>
     </div>

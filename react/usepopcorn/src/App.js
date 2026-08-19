@@ -11,8 +11,9 @@ import WatchedMovieList from "./components/WatchedMovieList";
 import StarRating from "./components/StarRating";
 import TextExpand from "./components/TextExpand";
 import MovieDetail from "./components/MovieDetail";
-
-/* const tempMovieData = [
+import Loader from "./components/Loader";
+/*
+const tempMovieData = [
   {
     imdbID: "tt1375666",
     Title: "Inception",
@@ -34,11 +35,10 @@ import MovieDetail from "./components/MovieDetail";
     Poster:
       "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
   },
-]; */
+]; 
 
-const tempMovieData = [];
 
-const tempWatchedData = [
+ const tempWatchedData = [
   {
     imdbID: "tt1375666",
     Title: "Inception",
@@ -59,11 +59,9 @@ const tempWatchedData = [
     imdbRating: 8.5,
     userRating: 9,
   },
-];
+]; */
 
-
-const average = (arr) =>
-  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+const tempWatchedData = [];
 
 const TempComp = () => {
   const [rating,setRating] = useState(0);
@@ -73,65 +71,94 @@ const TempComp = () => {
   </div>
 }
 
-const apiKey = "8169c304";
-async function getMovies(url){
-  const apiObj  = await fetch(url);
-  if(!apiObj.ok){
-    throw new Error("Error Somethingwent wrong");
-  } 
+const apiKey = process.env.REACT_APP_MOVIE_API_KEY;
+async function getMovies(url,controller){
+
+  //try{
+    const apiObj  = await fetch(url,{signal:controller.signal});
+    if(!apiObj.ok){
+      throw new Error("Error Somethingwent wrong");
+    } 
+    const fData =  await apiObj.json();
     
-  const fData =  await apiObj.json();
-  return fData;
+    return fData;
+  /* }catch(error){
+     throw new Error(error);
+  } */
+
+
+
 }
 
 export default function App() {
   const [selectedMovie, setSelectedMovie] = useState(null);
   //const [selectedMovie, setSelectedMovie] = useState(null);
-  const [query, setQuery] = useState("attack");
+  const [query, setQuery] = useState("");
   const [showLoader, setShowLoader] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [movies, setMovies] = useState(tempMovieData);
+  const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState(tempWatchedData);
-
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
-  const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
 
   const url = `http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`;
 
+ 
+
   useEffect(()=>{
+  const controller = new AbortController();
+
     setIsError("");
     setShowLoader(false);
-    const loadData = async () => {
-      try{
         
-        setShowLoader(true);
-        if(query.length < 3){
-          throw new Error("Movie not found!!");
+        const loadData = async () => {
+
+        try{
+
+                setShowLoader(true);
+
+                if(query.length < 3){
+                  throw new Error("Movie not found!!");
+                }
+
+                const moviesDt = await getMovies(url,controller);
+                if(moviesDt){
+                  if(moviesDt.Response === 'False'){
+                    throw new Error("Movie not found!!");
+                  }   
+                  if(selectedMovie){
+                    handeMovieClose(); // clode rhs move while searching new movie
+                  }
+                  setMovies(()=>moviesDt.Search);
+                  setShowLoader(()=>false);
+                }
+          }
+          catch(err){
+            if(err.name!='AbortError'){
+              setIsError(err.message);
+              setShowLoader(false);
+            }
+          }
         }
-        const moviesDt = await getMovies(url);
- 
-        if(moviesDt.Response === 'False'){
-          throw new Error("Movie not found!!");
-        }   
-            
-        setMovies(()=>moviesDt.Search);
-        setShowLoader(()=>false);
-      }
-      catch(err){
-        setIsError(err.message);
-        setShowLoader(false);
-      }
-    }
-    loadData();
+        loadData();
+        return function(){
+          controller.abort();
+        }
   },[query]);
 
   const handeMovieSelect = (movieId) => {
     setSelectedMovie(()=>movieId);
   }
 
-  const handeMovieClose = (movieId) => {
+  const handeMovieClose = () => {
     setSelectedMovie(false);
+  }
+
+  const handleAddWatch = (movie) => {
+    setWatched((old)=>[...old,movie]);
+    handeMovieClose();
+  }
+
+  const handleDeleteWatch = (movieId) => {
+    setWatched((movies)=>movies.filter((m)=>m.imdbID!=movieId));
   }
 
   return (
@@ -151,10 +178,10 @@ export default function App() {
             </ListBox>
             <ListBox>
               {selectedMovie ? 
-                  <MovieDetail selectedMovie={selectedMovie} onMovieClose={handeMovieClose}/>:
+                  <MovieDetail watched={watched} selectedMovie={selectedMovie} onMovieClose={handeMovieClose} onAddWatch={handleAddWatch}/>:
                 <>
-                  <WatchedSummary/>        
-                  <WatchedMovieList watched={watched}/>
+                  <WatchedSummary watched={watched}/>        
+                  <WatchedMovieList watched={watched} onDeleteWatch={handleDeleteWatch}/>
                 </>
               }
             </ListBox>
@@ -163,9 +190,7 @@ export default function App() {
   );
 }
 
-const Loader = () => {
-  return <p className="loader">Loading..</p>;
-}
+
 const ErrorMsg = ({msg}) => {
   return <p className="error">⛔️{msg}</p>;
 }
