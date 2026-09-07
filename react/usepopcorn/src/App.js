@@ -12,57 +12,9 @@ import StarRating from "./components/StarRating";
 import TextExpand from "./components/TextExpand";
 import MovieDetail from "./components/MovieDetail";
 import Loader from "./components/Loader";
-/*
-const tempMovieData = [
-  {
-    imdbID: "tt1375666",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-  },
-  {
-    imdbID: "tt0133093",
-    Title: "The Matrix",
-    Year: "1999",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg",
-  },
-  {
-    imdbID: "tt6751668",
-    Title: "Parasite",
-    Year: "2019",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
-  },
-]; 
-
-
- const tempWatchedData = [
-  {
-    imdbID: "tt1375666",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-    runtime: 148,
-    imdbRating: 8.8,
-    userRating: 10,
-  },
-  {
-    imdbID: "tt0088763",
-    Title: "Back to the Future",
-    Year: "1985",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-    runtime: 116,
-    imdbRating: 8.5,
-    userRating: 9,
-  },
-]; */
-
-const tempWatchedData = [];
-
+import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
+import { useTest } from "./useTest";
 const TempComp = () => {
   const [rating,setRating] = useState(0);
   return <div>
@@ -71,91 +23,31 @@ const TempComp = () => {
   </div>
 }
 
-const apiKey = process.env.REACT_APP_MOVIE_API_KEY;
-async function getMovies(url,controller){
 
-  //try{
-    const apiObj  = await fetch(url,{signal:controller.signal});
-    if(!apiObj.ok){
-      throw new Error("Error Somethingwent wrong");
-    } 
-    const fData =  await apiObj.json();
-    
-    return fData;
-  /* }catch(error){
-     throw new Error(error);
-  } */
-
-
-
-}
 
 export default function App() {
   const [selectedMovie, setSelectedMovie] = useState(null);
-  //const [selectedMovie, setSelectedMovie] = useState(null);
-  const [query, setQuery] = useState("");
-  const [showLoader, setShowLoader] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [query, setQuery] = useState("train");
+  const [watched, setWatched] = useLocalStorageState([],'watched_data');
+  const {showLoader,isError,movies} = useMovies(query,handeMovieClose);
+  const {newNo} = useTest(5);
 
-  const url = `http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`;
-
- 
-
-  useEffect(()=>{
-  const controller = new AbortController();
-
-    setIsError("");
-    setShowLoader(false);
-        
-        const loadData = async () => {
-
-        try{
-
-                setShowLoader(true);
-
-                if(query.length < 3){
-                  throw new Error("Movie not found!!");
-                }
-
-                const moviesDt = await getMovies(url,controller);
-                if(moviesDt){
-                  if(moviesDt.Response === 'False'){
-                    throw new Error("Movie not found!!");
-                  }   
-                  if(selectedMovie){
-                    handeMovieClose(); // clode rhs move while searching new movie
-                  }
-                  setMovies(()=>moviesDt.Search);
-                  setShowLoader(()=>false);
-                }
-          }
-          catch(err){
-            if(err.name!='AbortError'){
-              setIsError(err.message);
-              setShowLoader(false);
-            }
-          }
-        }
-        loadData();
-        return function(){
-          controller.abort();
-        }
-  },[query]);
+  /* useEffect(()=>{
+    localStorage.setItem("watched_data", JSON.stringify(watched));
+  },[watched]); */
 
   const handeMovieSelect = (movieId) => {
     setSelectedMovie(()=>movieId);
   }
 
-  const handeMovieClose = () => {
+  function handeMovieClose(){
     setSelectedMovie(false);
   }
 
   const handleAddWatch = (movie) => {
     setWatched((old)=>[...old,movie]);
     handeMovieClose();
-  }
+  } 
 
   const handleDeleteWatch = (movieId) => {
     setWatched((movies)=>movies.filter((m)=>m.imdbID!=movieId));

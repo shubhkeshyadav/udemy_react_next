@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import StarRating from './StarRating';
 import Loader from './Loader';
 /* import Loader from './Loader';
@@ -16,9 +16,11 @@ const getMovieDetail = async (movieId) => {
 }
 
 const MovieDetail = ({selectedMovie,onMovieClose,onAddWatch,watched}) => {
+
   const [movie,setMovie] = useState({});
   const[isLoading,setIsLoading] = useState(false);
   const[userRating,setUserRating] = useState(0);
+  const countRef = useRef(0);
 
   let userGivenRating = 0;
   if(watched.length > 0){
@@ -28,6 +30,13 @@ const MovieDetail = ({selectedMovie,onMovieClose,onAddWatch,watched}) => {
       }
     });
   }
+
+  useEffect(()=>{
+    if(userRating){
+      countRef.current++;
+    }
+  },[userRating]);
+
   //if(watched.length)
   /* let userGivenRating = 0;
   let isWatched = false;
@@ -38,11 +47,11 @@ const MovieDetail = ({selectedMovie,onMovieClose,onAddWatch,watched}) => {
     }
   } */
 
+
      useEffect(()=>{
        const cb = (e) => {
           if(e.code == 'Escape'){
             onMovieClose();
-            console.log('here==>');
           }
        }
         document.addEventListener('keydown',cb);
@@ -88,6 +97,7 @@ const MovieDetail = ({selectedMovie,onMovieClose,onAddWatch,watched}) => {
         runtime: Number(runtime.split(" ").at(0)),
         imdbRating: imdbRating,
         userRating: userRating,
+        ratingDecisionCount : countRef.current
     }
     onAddWatch(newArr);
   }
